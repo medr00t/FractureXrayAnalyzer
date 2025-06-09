@@ -1,0 +1,17 @@
+path: ./datasets  # dataset root dir
+train: train/images  # train images
+val: valid/images    # val images
+
+# Classes
+names:
+  0: fracture
+
+# Training parameters
+nc: 1  # number of classes
+box: 0.3  # box loss weight for better localization
+iou_t: 0.75  # IoU threshold for better precision
+iou_aware: true  # enable IoU-aware training
+conf_t: 0.3  # lower confidence threshold for higher sensitivity
+focal_loss: true  # use focal loss for better handling of hard cases
+fl_gamma: 2.0  # focal loss gamma parameter
+class_weights: [2.0]  # higher weight for fracture class to reduce false negatives

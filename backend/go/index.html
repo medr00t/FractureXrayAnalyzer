@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fracture Detection Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      margin-top: 40px;
+      color: #2d3a4b;
+    }
+    .container {
+      background: #fff;
+      padding: 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      margin-top: 30px;
+      width: 100%;
+      max-width: 400px;
+    }
+    input[type="file"] {
+      margin-bottom: 1rem;
+    }
+    button {
+      background: #2d8cf0;
+      color: #fff;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #1a6ed8;
+    }
+    .result {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    .result img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .info {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      color: #333;
+    }
+    .error {
+      color: #d32f2f;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fracture Detection Demo</h1>
+  <div class="container">
+    <form id="uploadForm">
+      <input type="file" id="imageInput" name="image" accept="image/*" required />
+      <button type="submit">Analyze X-ray</button>
+    </form>
+    <div class="result" id="result" style="display:none;">
+      <div class="info" id="info"></div>
+      <img id="resultImage" src="" alt="Result" />
+    </div>
+    <div class="error" id="error"></div>
+  </div>
+  <script>
+    const form = document.getElementById('uploadForm');
+    const resultDiv = document.getElementById('result');
+    const infoDiv = document.getElementById('info');
+    const resultImg = document.getElementById('resultImage');
+    const errorDiv = document.getElementById('error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resultDiv.style.display = 'none';
+      errorDiv.textContent = '';
+      const fileInput = document.getElementById('imageInput');
+      if (!fileInput.files.length) return;
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const response = await fetch(' http://localhost:3000/api/analyze', {
+          method: 'POST',
+          body: formData
+        });
+        if (!response.ok) throw new Error('Server error');
+        const data = await response.json();
+
+        if (data.detected) {
+          infoDiv.innerHTML = `
+            <strong>Fracture Detected!</strong><br>
+            Type: <b>${data.type}</b><br>
+            Estimated Recovery: <b>${data.recovery_time} days</b>
+          `;
+        } else {
+          infoDiv.innerHTML = `<strong>No fracture detected.</strong>`;
+        }
+        if (data.image_base64) {
+          resultImg.src = 'data:image/jpeg;base64,' + data.image_base64;
+          resultImg.style.display = 'block';
+        } else {
+          resultImg.style.display = 'none';
+        }
+        resultDiv.style.display = 'block';
+      } catch (err) {
+        errorDiv.textContent = 'Error: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html> 
