@@ -179,7 +179,7 @@ const ResultsPage: React.FC = () => {
                     <div className="mt-2 text-sm">
                       <p className={fractureDetected ? 'text-red-700' : 'text-green-700'}>
                         {fractureDetected
-                          ? `A ${analysis.fractureType} was detected in the ${analysis.fractureLocation} with ${Math.round(analysis.confidence * 100)}% confidence.`
+                          ? `A ${analysis.fractureType} was detected${analysis.fractureLocation ? ` in the ${analysis.fractureLocation}` : ''} with ${Math.round(analysis.confidence * 100)}% confidence.`
                           : 'The AI analysis did not detect any fractures in this X-ray image.'
                         }
                       </p>
@@ -188,7 +188,7 @@ const ResultsPage: React.FC = () => {
                 </div>
               </div>
               
-              {fractureDetected && analysis.recoveryTimeWeeks && (
+              {fractureDetected && analysis.recoveryTimeDays && (
                 <div className="mt-6">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="h-4 w-4 text-gray-500" />
@@ -200,17 +200,17 @@ const ResultsPage: React.FC = () => {
                         <div className="h-2 bg-gray-200 rounded-full">
                           <div 
                             className="h-2 bg-primary-600 rounded-full transition-all duration-500" 
-                            style={{ width: `${Math.min(100, (analysis.recoveryTimeWeeks / 12) * 100)}%` }}
+                            style={{ width: `${Math.min(100, (analysis.recoveryTimeDays / 90) * 100)}%` }}
                           ></div>
                         </div>
                         <div className="mt-2 flex justify-between text-xs text-gray-500">
-                          <span>0 weeks</span>
-                          <span>12+ weeks</span>
+                          <span>0 days</span>
+                          <span>90+ days</span>
                         </div>
                       </div>
                       <div className="ml-4 text-right">
-                        <span className="text-lg font-semibold text-gray-900">{analysis.recoveryTimeWeeks}</span>
-                        <span className="text-gray-600 text-sm ml-1">weeks</span>
+                        <span className="text-lg font-semibold text-gray-900">{analysis.recoveryTimeDays}</span>
+                        <span className="text-gray-600 text-sm ml-1">days</span>
                       </div>
                     </div>
                     <p className="mt-2 text-sm text-gray-600">

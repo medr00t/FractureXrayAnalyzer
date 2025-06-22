@@ -3,9 +3,19 @@ import { isTokenValid, getUserDataFromToken } from '../utils/jwt';
 
 // Mock storage for JWT token
 const TOKEN_KEY = 'radiofracture_auth_token';
+const USER_KEY = 'radiofracture_user'; // New key for storing user data
 
 // Mock user data for demonstration
 const MOCK_USERS = [
+  {
+    id: '1',
+    email: 'doctor@example.com',
+    password: '1',
+    name: 'Dr. John Smith',
+    role: 'doctor',
+    specialty: 'Orthopedics',
+    hospital: 'Central Hospital'
+  },
   {
     id: '1',
     email: 'doctor@example.com',
@@ -47,92 +57,38 @@ const generateToken = (user: Omit<User, 'password'>) => {
 };
 
 // Login API
-export const login = async (credentials: LoginCredentials): Promise<ApiResponse<{ user: User; token: string }>> => {
+export const login = async (credentials: LoginCredentials): Promise<ApiResponse<{ token: string }>> => {
   try {
-    // Simulate API call
-    await delay(1000);
-    
-    const user = MOCK_USERS.find(u => u.email === credentials.email);
-    
-    if (!user || user.password !== credentials.password) {
-      return {
-        data: null,
-        error: 'Invalid email or password',
-        status: 401
-      };
+    const response = await fetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return { data: null, error: data.error || 'Login failed', status: response.status };
     }
-    
-    // Create a user object without the password
-    const { password, ...userWithoutPassword } = user;
-    const token = generateToken(userWithoutPassword as User);
-    
-    // Save token to local storage
-    localStorage.setItem(TOKEN_KEY, token);
-    
-    return {
-      data: {
-        user: userWithoutPassword as User,
-        token
-      },
-      error: null,
-      status: 200
-    };
+    return { data, error: null, status: 200 };
   } catch (error) {
-    return {
-      data: null,
-      error: 'An error occurred during login',
-      status: 500
-    };
+    return { data: null, error: 'An unexpected error occurred', status: 500 };
   }
 };
 
 // Register API
-export const register = async (credentials: RegisterCredentials): Promise<ApiResponse<{ user: User; token: string }>> => {
+export const register = async (credentials: RegisterCredentials): Promise<ApiResponse<{ message: string }>> => {
   try {
-    // Simulate API call
-    await delay(1500);
-    
-    // Check if user already exists
-    if (MOCK_USERS.some(u => u.email === credentials.email)) {
-      return {
-        data: null,
-        error: 'User with this email already exists',
-        status: 409
-      };
+    const response = await fetch('http://localhost:3000/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return { data: null, error: data.error || 'Registration failed', status: response.status };
     }
-    
-    // Create new user
-    const newUser = {
-      id: `${MOCK_USERS.length + 1}`,
-      email: credentials.email,
-      password: credentials.password,
-      name: credentials.name,
-      role: credentials.role,
-      specialty: credentials.specialty || '',
-      hospital: credentials.hospital || ''
-    };
-    
-    // Create a user object without the password
-    const { password, ...userWithoutPassword } = newUser;
-    const token = generateToken(userWithoutPassword as User);
-    
-    // Save token to local storage
-    localStorage.setItem(TOKEN_KEY, token);
-    
-    return {
-      data: {
-        user: userWithoutPassword as User,
-        token
-      },
-      error: null,
-      status: 201
-    };
+    return { data, error: null, status: 200 };
   } catch (error) {
-    return {
-      data: null,
-      error: 'An error occurred during registration',
-      status: 500
-    };
+    return { data: null, error: 'An unexpected error occurred', status: 500 };
   }
 };
 
@@ -165,6 +121,7 @@ export const refreshToken = async (): Promise<ApiResponse<{ token: string }>> =>
     
     // Save new token
     localStorage.setItem(TOKEN_KEY, newToken);
+    // No need to update user data here unless user data itself changes with token refresh
     
     return {
       data: { token: newToken },
@@ -183,30 +140,29 @@ export const refreshToken = async (): Promise<ApiResponse<{ token: string }>> =>
 // Logout
 export const logout = (): void => {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY); // Remove user data on logout
 };
 
 // Get current auth state
 export const getCurrentAuth = (): { user: User | null; token: string | null } => {
   const token = localStorage.getItem(TOKEN_KEY);
+  const userJson = localStorage.getItem(USER_KEY); // Retrieve user data
   
-  if (!token || !isTokenValid(token)) {
+  if (!token || !userJson || !isTokenValid(token)) {
     return { user: null, token: null };
   }
   
-  const userData = getUserDataFromToken(token);
-  if (!userData) {
+  try {
+    const user: User = JSON.parse(userJson); // Parse user data
+    // Optionally, you might want to re-validate user data against the token here
+    // For now, we trust the stored user data if the token is valid
+    
+    return {
+      user,
+      token
+    };
+  } catch (error) {
+    console.error('Error parsing user data from local storage:', error);
     return { user: null, token: null };
   }
-  
-  const user = MOCK_USERS.find(u => u.id === userData.sub);
-  if (!user) {
-    return { user: null, token: null };
-  }
-  
-  const { password, ...userWithoutPassword } = user;
-  
-  return {
-    user: userWithoutPassword as User,
-    token
-  };
 };

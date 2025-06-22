@@ -109,13 +109,13 @@ const ResultCard: React.FC<ResultCardProps> = ({ analysis, detailed = false, onC
                     <p className="font-medium text-gray-800">{analysis.fractureLocation}</p>
                   </div>
                 )}
-                {analysis.recoveryTimeWeeks && (
+                {analysis.recoveryTimeDays && (
                   <div>
                     <p className="text-xs text-gray-500 flex items-center">
                       <Clock className="h-3.5 w-3.5 mr-1" /> 
                       Estimated Recovery
                     </p>
-                    <p className="font-medium text-gray-800">{analysis.recoveryTimeWeeks} weeks</p>
+                    <p className="font-medium text-gray-800">{analysis.recoveryTimeDays} days</p>
                   </div>
                 )}
                 <div>

@@ -1,4 +1,4 @@
-import { Analysis, ApiResponse, FractureAnnotation } from '../types';
+import { Analysis, ApiResponse, FractureAnnotation, User, Report } from '../types';
 
 // Helper to simulate API delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -17,7 +17,7 @@ const MOCK_ANALYSES: Analysis[] = [
     processedDate: '2025-01-15T09:32:10Z',
     fractureType: 'Distal radius fracture',
     fractureLocation: 'Right wrist',
-    recoveryTimeWeeks: 6,
+    recoveryTimeDays: 42,
     confidence: 0.94,
     notes: 'Clean break, good alignment',
     suspectedFracture: false
@@ -105,85 +105,37 @@ export const getAnnotations = async (analysisId: string): Promise<ApiResponse<Fr
   }
 };
 
-// Upload and analyze an X-ray image
-export const uploadAndAnalyzeImage = async (
-  file: File, 
-  userId: string,
-  patientInfo?: { patientId?: string; patientName?: string; notes?: string }
-): Promise<ApiResponse<Analysis>> => {
+// Get all patients for the logged-in doctor
+export const getPatients = async (token: string): Promise<ApiResponse<User[]>> => {
   try {
-    // Create a file reader to get a data URL for preview
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      
-      reader.onloadend = async () => {
-        // Here you would normally send the image to your API
-        // const formData = new FormData();
-        // formData.append('image', file);
-        // const response = await fetch('YOUR_API_ENDPOINT', {
-        //   method: 'POST',
-        //   body: formData
-        // });
-        
-        // Simulate API response delay
-        await delay(2000);
-        
-        // Mock API response
-        const confidence = 0.94;
-        const newAnalysis: Analysis = {
-          id: `${Date.now()}`,
-          userId,
-          patientId: patientInfo?.patientId || undefined,
-          patientName: patientInfo?.patientName || undefined,
-          imageUrl: reader.result as string,
-          annotatedImageUrl: reader.result as string,
-          originalFilename: file.name,
-          uploadDate: new Date().toISOString(),
-          processedDate: new Date().toISOString(),
-          fractureType: 'Distal radius fracture',
-          fractureLocation: 'Right wrist',
-          recoveryTimeWeeks: 6,
-          confidence,
-          notes: patientInfo?.notes || 'Clean break, good alignment',
-          suspectedFracture: false
-        };
-        
-        // Mock annotation
-        MOCK_ANNOTATIONS[newAnalysis.id] = [{
-          id: `a${Date.now()}`,
-          x: 120,
-          y: 150,
-          width: 60,
-          height: 40,
-          fractureType: newAnalysis.fractureType!,
-          confidence: newAnalysis.confidence
-        }];
-        
-        // Add to mock data
-        MOCK_ANALYSES.push(newAnalysis);
-        
-        resolve({
-          data: newAnalysis,
-          error: null,
-          status: 201
-        });
-      };
-      
-      reader.onerror = () => {
-        resolve({
-          data: null,
-          error: 'Failed to read file',
-          status: 400
-        });
-      };
-      
-      reader.readAsDataURL(file);
+    const response = await fetch('http://localhost:3000/api/patients', {
+      headers: { 'Authorization': `Bearer ${token}` },
     });
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { data: null, error: errorData.error || 'Failed to fetch patients', status: response.status };
+    }
+    const data = await response.json();
+    return { data, error: null, status: 200 };
   } catch (error) {
-    return {
-      data: null,
-      error: 'Failed to upload and analyze image',
-      status: 500
-    };
+    return { data: null, error: 'An unexpected error occurred', status: 500 };
+  }
+};
+
+// Create a new report by uploading an image and patient data
+export const createReport = async (formData: FormData, token: string): Promise<ApiResponse<{ analysis: Analysis; report: Report }>> => {
+  try {
+    const response = await fetch('http://localhost:3000/api/reports/create', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return { data: null, error: data.error || 'Failed to create report', status: response.status };
+    }
+    return { data, error: null, status: response.status };
+  } catch (error) {
+    return { data: null, error: 'An unexpected error occurred during report creation', status: 500 };
   }
 };

@@ -3,17 +3,19 @@ package models
 import (
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
+// User represents a user in the database, who can be a chef, doctor, or patient.
 type User struct {
-	ID        uint           `json:"id" gorm:"primaryKey"`
-	Email     string         `json:"email" gorm:"unique;not null"`
-	Password  string         `json:"-" gorm:"not null"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	FullName  string             `bson:"fullName" json:"fullName"`
+	Email     string             `bson:"email" json:"email"`
+	Password  string             `bson:"password,omitempty" json:"-"`
+	Role      string             `bson:"role" json:"role"`                               // "chef", "doctor", or "patient"
+	CreatedBy primitive.ObjectID `bson:"createdBy,omitempty" json:"createdBy,omitempty"` // chef creates doctors, doctor creates patients
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
 }
 
 // HashPassword hashes the user's password
@@ -29,4 +31,4 @@ func (u *User) HashPassword() error {
 // CheckPassword checks if the provided password matches the hashed password
 func (u *User) CheckPassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-} 
+}

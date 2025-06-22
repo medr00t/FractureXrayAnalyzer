@@ -1,10 +1,20 @@
+export interface Report {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  imageName: string;
+  fractureType: string;
+  recoveryTime: string;
+  createdAt: string;
+}
+
 export interface User {
   id: string;
+  fullName: string;
   email: string;
-  name: string;
-  role: 'radiologist' | 'doctor' | 'admin';
-  specialty?: string;
-  hospital?: string;
+  role: string;
+  createdBy?: string;
+  createdAt: string;
 }
 
 export interface AuthState {
@@ -27,7 +37,7 @@ export interface Analysis {
   processedDate: string;
   fractureType: string | null;
   fractureLocation: string | null;
-  recoveryTimeWeeks: number | null;
+  recoveryTimeDays: number | null;
   confidence: number;
   notes: string;
   suspectedFracture: boolean;

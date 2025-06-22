@@ -5,8 +5,9 @@ import (
 	"os"
 
 	"fracture-detection-webapp/handlers"
-	// "fracture-detection-webapp/middleware"
+	"fracture-detection-webapp/middleware"
 	"fracture-detection-webapp/models"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -30,14 +31,18 @@ func main() {
 	}))
 
 	api := app.Group("/api")
-	auth := api.Group("/auth")
-	auth.Post("/doctor/register", handlers.RegisterDoctor)
-	auth.Post("/doctor/login", handlers.LoginDoctor)
-	auth.Post("/patient/register", handlers.RegisterPatient)
-	auth.Post("/patient/login", handlers.LoginPatient)
 
-	api.Post("/analyze", handlers.AnalyzeImage)
-	api.Get("/reports", handlers.GetMyReports)
+	// Unified Auth routes
+	auth := api.Group("/auth")
+	auth.Post("/register", handlers.Register)
+	auth.Post("/login", handlers.Login)
+
+	// Protected routes
+	api.Get("/patients", middleware.IsAuthenticated, handlers.GetMyPatients)
+	api.Post("/analyze", middleware.IsAuthenticated, handlers.AnalyzeImage)
+	api.Get("/reports", middleware.IsAuthenticated, handlers.GetMyReports)
+	api.Post("/reports/create", middleware.IsAuthenticated, handlers.CreateReport)
+
 	api.Get("/test", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"message": "API is working!"})
 	})

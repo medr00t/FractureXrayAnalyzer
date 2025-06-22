@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"log"
 	"mime/multipart"
@@ -10,6 +11,16 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 )
+
+// AnalyzeResponse represents the expected response from the Python backend
+// and what will be sent to the frontend.
+type AnalyzeResponse struct {
+	Detected     bool     `json:"detected"`
+	Type         string   `json:"type"`
+	RecoveryTime *int     `json:"recovery_time"`
+	ImageBase64  *string  `json:"image_base64"`
+	Confidence   *float64 `json:"confidence"`
+}
 
 // This handler mocks AI analysis and stores a report
 func AnalyzeImage(c *fiber.Ctx) error {
@@ -66,5 +77,13 @@ func AnalyzeImage(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not read response from Python service"})
 	}
 
-	return c.Status(resp.StatusCode).Send(respBody)
-} 
+	// Unmarshal and re-marshal to ensure the confidence field is present and explicit
+	var analyzeResp AnalyzeResponse
+	err = json.Unmarshal(respBody, &analyzeResp)
+	if err != nil {
+		log.Printf("Unmarshal error: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Invalid response from Python service"})
+	}
+
+	return c.Status(resp.StatusCode).JSON(analyzeResp)
+}
