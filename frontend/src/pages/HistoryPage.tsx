@@ -1,81 +1,123 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getReports, deleteReport } from '../api/analysis';
 import { useAuth } from '../context/AuthContext';
+import { EnrichedReport } from '../types';
 import PageContainer from '../components/layout/PageContainer';
-import HistoryList from '../components/history/HistoryList';
-import { getUserAnalyses } from '../api/analysis';
-import { Analysis } from '../types';
-import { AlertCircle } from 'lucide-react';
+import { History, Eye, User as UserIcon, Activity } from 'lucide-react';
 
 const HistoryPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [analyses, setAnalyses] = useState<Analysis[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useState<EnrichedReport[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { token } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchAnalyses = async () => {
-      if (!user) return;
-
-      setLoading(true);
-      setError(null);
-
+    const fetchHistory = async () => {
+      if (!token) {
+        setError("No authentication token found.");
+        setLoading(false);
+        return;
+      }
       try {
-        const response = await getUserAnalyses(user.id);
-        
-        if (response.error || !response.data) {
-          setError(response.error || 'Failed to load analyses');
-          setLoading(false);
-          return;
+        setLoading(true);
+        const response = await getReports(token);
+        if (response.data) {
+          setHistory(response.data);
+          setError(null);
+        } else {
+          setError(response.error || 'Failed to fetch history.');
         }
-        
-        setAnalyses(response.data);
-      } catch (err) {
-        console.error('Error fetching analyses:', err);
-        setError('An unexpected error occurred. Please try again later.');
+      } catch (err: any) {
+        setError(err.message || 'An unexpected error occurred.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAnalyses();
-  }, [user]);
+    if (token) {
+      fetchHistory();
+    }
+  }, [token]);
 
-  const handleSelectAnalysis = (analysisId: string) => {
-    navigate(`/results/${analysisId}`);
+  // Use toLocaleString for a more detailed date and time
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleString();
+
+  const handleViewDetails = (reportId: string) => {
+    navigate(`/results/${reportId}`);
   };
 
+  const handleDelete = async (reportId: string) => {
+    if (!token) {
+      setError("Authentication token not found.");
+      return;
+    }
+    if (window.confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
+      const { error: deleteError } = await deleteReport(reportId, token);
+      if (deleteError) {
+        setError(deleteError);
+      } else {
+        setHistory(prevHistory => prevHistory.filter(report => report.id !== reportId));
+        setError(null);
+      }
+    }
+  };
+
+  if (loading) {
+    return <PageContainer><p>Loading history...</p></PageContainer>;
+  }
+
   return (
-    <PageContainer
-      title="Analysis History"
-      subtitle="View and manage your X-ray analysis history"
-    >
-      {loading ? (
-        <div className="min-h-[50vh] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-          <span className="ml-3 text-gray-600">Loading analysis history...</span>
-        </div>
-      ) : error ? (
-        <div className="min-h-[30vh] flex items-center justify-center">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md w-full text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">Error Loading History</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      ) : (
-        <HistoryList
-          analyses={analyses}
-          onSelectAnalysis={handleSelectAnalysis}
-        />
-      )}
+    <PageContainer title="Analysis History" subtitle="Review past fracture detection reports">
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Doctor</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fracture Type</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Confidence</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {history.length > 0 ? (
+              history.map((report) => (
+                <tr key={report.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{formatDate(report.createdAt)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{report.patientName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{report.doctorName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{report.fractureType || 'N/A'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{report.confidence ? `${Math.round(report.confidence * 100)}%` : 'N/A'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                      onClick={() => handleViewDetails(report.id)}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleDelete(report.id)}
+                      className="ml-4 text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="text-center py-10 text-gray-500">
+                  <History className="mx-auto h-12 w-12" />
+                  <p className="mt-2">No reports found.</p>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </PageContainer>
   );
 };

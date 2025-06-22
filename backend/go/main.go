@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -15,8 +16,9 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Println("Warning: .env file not found")
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Warning: .env file not found or could not be loaded")
 	}
 	models.InitMongo()
 
@@ -40,8 +42,11 @@ func main() {
 	// Protected routes
 	api.Get("/patients", middleware.IsAuthenticated, handlers.GetMyPatients)
 	api.Post("/analyze", middleware.IsAuthenticated, handlers.AnalyzeImage)
-	api.Get("/reports", middleware.IsAuthenticated, handlers.GetMyReports)
+	api.Get("/reports", middleware.IsAuthenticated, handlers.GetAllReports)
 	api.Post("/reports/create", middleware.IsAuthenticated, handlers.CreateReport)
+	api.Get("/reports/:id", middleware.IsAuthenticated, handlers.GetReportByID)
+	api.Delete("/reports/:id", middleware.IsAuthenticated, handlers.DeleteReport)
+	api.Post("/reports/:reportId/notify", middleware.IsAuthenticated, handlers.NotifyPatientByEmail)
 
 	api.Get("/test", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"message": "API is working!"})

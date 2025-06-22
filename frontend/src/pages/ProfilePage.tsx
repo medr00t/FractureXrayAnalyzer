@@ -5,26 +5,20 @@ import { User, Mail, Building, Briefcase, AlertCircle, Save, Key } from 'lucide-
 
 const ProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
-  const [name, setName] = useState(user?.name || '');
-  const [specialty, setSpecialty] = useState(user?.specialty || '');
-  const [hospital, setHospital] = useState(user?.hospital || '');
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const handleProfileUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Reset states
     setSaveSuccess(false);
     setSaveError(null);
-    
-    // Simulate API call
     setTimeout(() => {
-      // In a real app, this would update the user profile in the backend
       setSaveSuccess(true);
     }, 1000);
   };
@@ -56,10 +50,6 @@ const ProfilePage: React.FC = () => {
     }, 1000);
   };
 
-  const handleLogout = () => {
-    logout();
-  };
-
   if (!user) {
     return null; // Protected route should handle this
   }
@@ -79,34 +69,20 @@ const ProfilePage: React.FC = () => {
                   <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-4">
                     <User className="h-12 w-12 text-white" />
                   </div>
-                  <h2 className="text-xl font-bold">{user.name}</h2>
+                  <h2 className="text-xl font-bold">{user.fullName}</h2>
                   <p className="text-primary-100 capitalize">{user.role}</p>
                 </div>
               </div>
-              
               <div className="p-4">
                 <div className="space-y-3">
                   <div className="flex items-center text-gray-600">
                     <Mail className="h-5 w-5 mr-2 text-gray-400" />
                     <span>{user.email}</span>
                   </div>
-                  {user.specialty && (
-                    <div className="flex items-center text-gray-600">
-                      <Briefcase className="h-5 w-5 mr-2 text-gray-400" />
-                      <span>{user.specialty}</span>
-                    </div>
-                  )}
-                  {user.hospital && (
-                    <div className="flex items-center text-gray-600">
-                      <Building className="h-5 w-5 mr-2 text-gray-400" />
-                      <span>{user.hospital}</span>
-                    </div>
-                  )}
                 </div>
-                
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <button
-                    onClick={handleLogout}
+                    onClick={logout}
                     className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                   >
                     Sign Out
@@ -140,44 +116,30 @@ const ProfilePage: React.FC = () => {
                 <form onSubmit={handleProfileUpdate}>
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
                         Full Name
                       </label>
                       <input
-                        id="name"
+                        id="fullName"
                         type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         required
                       />
                     </div>
                     
                     <div>
-                      <label htmlFor="specialty" className="block text-sm font-medium text-gray-700 mb-1">
-                        Specialty
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
                       </label>
                       <input
-                        id="specialty"
-                        type="text"
-                        value={specialty}
-                        onChange={(e) => setSpecialty(e.target.value)}
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="e.g., Orthopedics, Diagnostic Radiology"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="hospital" className="block text-sm font-medium text-gray-700 mb-1">
-                        Hospital/Institution
-                      </label>
-                      <input
-                        id="hospital"
-                        type="text"
-                        value={hospital}
-                        onChange={(e) => setHospital(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="e.g., City General Hospital"
+                        required
                       />
                     </div>
                     

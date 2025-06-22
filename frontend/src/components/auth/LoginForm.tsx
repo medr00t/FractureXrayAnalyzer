@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { AlertCircle } from 'lucide-react';
 
@@ -7,10 +7,14 @@ const LoginForm: React.FC = () => {
   const { login, loading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login({ email, password });
+    const success = await login({ email, password });
+    if (success) {
+      navigate('/');
+    }
   };
 
   return (
@@ -73,21 +77,12 @@ const LoginForm: React.FC = () => {
         </button>
       </form>
       
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-primary-600 hover:text-primary-800 font-medium">
-            Create an account
-          </Link>
+      <div className="mt-4">
+        <p className="text-xs text-gray-500">
+          For demo purposes, you can use:<br />
+          Email: doctor@example.com<br />
+          Password: password123
         </p>
-        
-        <div className="mt-4">
-          <p className="text-xs text-gray-500">
-            For demo purposes, you can use:<br />
-            Email: doctor@example.com<br />
-            Password: password123
-          </p>
-        </div>
       </div>
     </div>
   );

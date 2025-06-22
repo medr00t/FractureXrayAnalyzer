@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"fracture-detection-webapp/models"
@@ -28,12 +29,15 @@ func GetMyPatients(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid doctor ID in token"})
 	}
 
+	log.Printf("Fetching patients for doctor with ID: %s", doctorID.Hex())
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Temporarily remove the createdBy filter for debugging
 	cursor, err := models.DB.Collection("users").Find(ctx, bson.M{
-		"role":      "patient",
-		"createdBy": doctorID,
+		"role": "patient",
+		// "createdBy": doctorID,
 	})
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch patients"})

@@ -11,14 +11,14 @@ interface DecodedToken {
 }
 
 interface AuthContextType extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<boolean>;
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-type AuthAction =
+type AuthAction = 
   | { type: 'INIT'; payload: { user: User | null; token: string | null } }
   | { type: 'LOGIN_SUCCESS'; payload: { user: User; token: string } }
   | { type: 'AUTH_FAILURE'; payload: string }
@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
     const response = await authApi.login(credentials);
     if (response.data?.token) {
       const token = response.data.token;
@@ -90,8 +90,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const user: User = { id: decodedToken.userId, email: decodedToken.email, role: decodedToken.role, fullName: '', createdAt: '' };
       localStorage.setItem('jwt', token);
       dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
+      return true;
     } else {
       dispatch({ type: 'AUTH_FAILURE', payload: response.error || 'Login failed' });
+      return false;
     }
   };
 

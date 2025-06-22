@@ -1,4 +1,4 @@
-import { Analysis, ApiResponse, FractureAnnotation, User, Report } from '../types';
+import { Analysis, ApiResponse, FractureAnnotation, User, Report, EnrichedReport } from '../types';
 
 // Helper to simulate API delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -117,6 +117,54 @@ export const getPatients = async (token: string): Promise<ApiResponse<User[]>> =
     }
     const data = await response.json();
     return { data, error: null, status: 200 };
+  } catch (error) {
+    return { data: null, error: 'An unexpected error occurred', status: 500 };
+  }
+};
+
+export const getReports = async (token: string): Promise<ApiResponse<EnrichedReport[]>> => {
+  try {
+    const response = await fetch('http://localhost:3000/api/reports', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { data: null, error: errorData.error || 'Failed to fetch reports', status: response.status };
+    }
+    const data = await response.json();
+    return { data, error: null, status: 200 };
+  } catch (error) {
+    return { data: null, error: 'An unexpected error occurred', status: 500 };
+  }
+};
+
+export const getReportById = async (reportId: string, token: string): Promise<ApiResponse<Report>> => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/reports/${reportId}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { data: null, error: errorData.error || 'Failed to fetch report', status: response.status };
+    }
+    const data = await response.json();
+    return { data, error: null, status: 200 };
+  } catch (error) {
+    return { data: null, error: 'An unexpected error occurred', status: 500 };
+  }
+};
+
+export const deleteReport = async (reportId: string, token: string): Promise<ApiResponse<null>> => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/reports/${reportId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { data: null, error: errorData.error || 'Failed to delete report', status: response.status };
+    }
+    return { data: null, error: null, status: 204 };
   } catch (error) {
     return { data: null, error: 'An unexpected error occurred', status: 500 };
   }

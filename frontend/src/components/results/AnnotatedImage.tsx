@@ -89,14 +89,14 @@ const AnnotatedImage: React.FC<AnnotatedImageProps> = ({
   return (
     <div 
       id="annotated-image-container"
-      className="relative bg-black rounded-lg overflow-hidden max-h-[450px] flex justify-center items-center"
+      className="relative bg-black rounded-lg overflow-hidden h-[438px] flex justify-center items-center"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
       <img 
         src={imageUrl} 
         alt="X-ray with annotations" 
-        className="max-h-[420px] w-auto h-auto object-contain"
+        className="h-full w-auto object-contain"
         onLoad={handleImageLoad}
       />
       

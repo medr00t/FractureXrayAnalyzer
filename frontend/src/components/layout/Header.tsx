@@ -50,12 +50,6 @@ const Header: React.FC = () => {
                       <p className="font-semibold">{user?.name}</p>
                       <p className="text-xs text-gray-500">{user?.role}</p>
                     </div>
-                    <Link 
-                      to="/profile" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Profile Settings
-                    </Link>
                     <button 
                       onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
@@ -69,12 +63,6 @@ const Header: React.FC = () => {
               <>
                 <Link to="/login" className="text-gray-700 hover:text-primary-600 transition-colors">
                   Sign In
-                </Link>
-                <Link 
-                  to="/register" 
-                  className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors"
-                >
-                  Register
                 </Link>
               </>
             )}
@@ -117,13 +105,6 @@ const Header: React.FC = () => {
                 >
                   History
                 </Link>
-                <Link 
-                  to="/profile" 
-                  className="text-gray-700 hover:text-primary-600 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Profile Settings
-                </Link>
                 <button 
                   onClick={handleLogout}
                   className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition-colors"
@@ -140,13 +121,6 @@ const Header: React.FC = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Sign In
-                </Link>
-                <Link 
-                  to="/register" 
-                  className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors text-center"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Register
                 </Link>
               </>
             )}

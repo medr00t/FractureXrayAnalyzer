@@ -9,13 +9,16 @@ import (
 
 // User represents a user in the database, who can be a chef, doctor, or patient.
 type User struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	FullName  string             `bson:"fullName" json:"fullName"`
-	Email     string             `bson:"email" json:"email"`
-	Password  string             `bson:"password,omitempty" json:"-"`
-	Role      string             `bson:"role" json:"role"`                               // "chef", "doctor", or "patient"
-	CreatedBy primitive.ObjectID `bson:"createdBy,omitempty" json:"createdBy,omitempty"` // chef creates doctors, doctor creates patients
-	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	FullName    string             `bson:"fullName" json:"fullName"`
+	Email       string             `bson:"email" json:"email"`
+	Password    string             `bson:"password,omitempty" json:"-"`
+	Role        string             `bson:"role" json:"role"`                               // "chef", "doctor", or "patient"
+	CreatedBy   primitive.ObjectID `bson:"createdBy,omitempty" json:"createdBy,omitempty"` // chef creates doctors, doctor creates patients
+	CreatedAt   time.Time          `bson:"createdAt" json:"createdAt"`
+	Age         int                `bson:"age,omitempty" json:"age,omitempty"`
+	PhoneNumber string             `bson:"phoneNumber,omitempty" json:"phoneNumber,omitempty"`
+	Notes       string             `bson:"notes,omitempty" json:"notes,omitempty"`
 }
 
 // HashPassword hashes the user's password

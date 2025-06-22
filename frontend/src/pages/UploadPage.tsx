@@ -49,7 +49,7 @@ const UploadPage: React.FC = () => {
     setPreview(null);
   };
 
-  const handleSubmit = async (patientInfo: { fullName?: string; email?: string }) => {
+  const handleSubmit = async (patientInfo: { patientName: string; email: string; age: string; phoneNumber: string; password: string; notes?: string }) => {
     if (!selectedFile || !token) {
       setError('Please select an X-ray image.');
       return;
@@ -68,8 +68,12 @@ const UploadPage: React.FC = () => {
     if (patientMode === 'existing') {
       formData.append('existingPatientId', selectedPatientId);
     } else {
-      formData.append('fullName', patientInfo.fullName || '');
-      formData.append('email', patientInfo.email || '');
+      formData.append('fullName', patientInfo.patientName);
+      formData.append('email', patientInfo.email);
+      formData.append('age', patientInfo.age);
+      formData.append('phoneNumber', patientInfo.phoneNumber);
+      formData.append('password', patientInfo.password);
+      formData.append('notes', patientInfo.notes || '');
     }
 
     try {
@@ -95,7 +99,7 @@ const UploadPage: React.FC = () => {
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
-
+        
         <div className="bg-white rounded-lg shadow-md mb-8">
           <div className="p-6 border-b">
             <h2 className="text-lg font-semibold">1. Select Patient</h2>
@@ -121,7 +125,7 @@ const UploadPage: React.FC = () => {
             )}
           </div>
         </div>
-
+        
         <div className="bg-white rounded-lg shadow-md">
           <div className="p-6 border-b">
             <h2 className="text-lg font-semibold">2. Upload Image</h2>

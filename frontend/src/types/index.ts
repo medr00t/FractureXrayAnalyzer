@@ -1,10 +1,12 @@
-export interface Report {
+export interface EnrichedReport {
   id: string;
-  patientId: string;
-  doctorId: string;
+  patient: User;
+  doctor: User;
   imageName: string;
+  annotatedImage?: string;
   fractureType: string;
   recoveryTime: string;
+  confidence?: number;
   createdAt: string;
 }
 
