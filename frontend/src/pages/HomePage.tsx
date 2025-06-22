@@ -1,11 +1,23 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PageContainer from '../components/layout/PageContainer';
 import { Activity, Upload, BarChart2, History, Shield, Database } from 'lucide-react';
 
 const HomePage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role === 'patient') {
+      navigate('/my-reports', { replace: true });
+    }
+  }, [user, navigate]);
+
+  // Render nothing or a loading spinner while redirecting
+  if (user?.role === 'patient') {
+    return null; 
+  }
 
   return (
     <div className="bg-gradient-to-b from-white to-gray-50">
@@ -24,7 +36,7 @@ const HomePage: React.FC = () => {
             RadioFracture AI helps doctors and radiologists instantly analyze X-ray images to detect fractures with clinical-grade accuracy.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {isAuthenticated ? (
+            {user ? (
               <Link
                 to="/upload"
                 className="px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors"
@@ -33,12 +45,6 @@ const HomePage: React.FC = () => {
               </Link>
             ) : (
               <>
-                <Link
-                  to="/register"
-                  className="px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors"
-                >
-                  Create Account
-                </Link>
                 <Link
                   to="/login"
                   className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors"
@@ -124,7 +130,7 @@ const HomePage: React.FC = () => {
                   <Database className="h-6 w-6 text-primary-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Trained on 500,000+ X-rays</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Trained on 20,000+ X-rays</h3>
                   <p className="text-gray-600">
                     Our algorithm has been trained on a diverse dataset of X-rays from multiple hospitals around the world.
                   </p>
@@ -138,7 +144,7 @@ const HomePage: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Clinically Validated</h3>
                   <p className="text-gray-600">
-                    Independently verified by radiologists at top medical institutions with 94% sensitivity and 96% specificity.
+                    Independently verified by radiologists at top medical institutions with 74.3%  overall precision.
                   </p>
                 </div>
               </div>
@@ -170,7 +176,7 @@ const HomePage: React.FC = () => {
               Join thousands of medical professionals already using RadioFracture AI to improve patient care.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {isAuthenticated ? (
+              {user ? (
                 <Link
                   to="/upload"
                   className="px-6 py-3 bg-white text-primary-600 font-medium rounded-md hover:bg-gray-100 transition-colors"
@@ -179,12 +185,6 @@ const HomePage: React.FC = () => {
                 </Link>
               ) : (
                 <>
-                  <Link
-                    to="/register"
-                    className="px-6 py-3 bg-white text-primary-600 font-medium rounded-md hover:bg-gray-100 transition-colors"
-                  >
-                    Create Account
-                  </Link>
                   <Link
                     to="/login"
                     className="px-6 py-3 border border-white text-white font-medium rounded-md hover:bg-primary-700 transition-colors"

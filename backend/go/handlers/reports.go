@@ -31,26 +31,42 @@ type EnrichedReport struct {
 	DoctorName    string `bson:"doctorName" json:"doctorName"`
 }
 
+// GetMyReportsRequest defines the expected body for a GetMyReports request.
+type GetMyReportsRequest struct {
+	PatientID string `json:"patientId"`
+}
+
 // Hardcoded Gmail credentials for local testing
 var emailUser = "forfirefree31@gmail.com" // <-- put your Gmail here
 var emailPass = "ccsbzrcfeatufgmb"        // ccsb zrcf eatu fgmb
 
 func GetMyReports(c *fiber.Ctx) error {
-	userIDStr := c.Locals("userId").(string)
+	userIDFromTokenStr := c.Locals("userId").(string)
 	userRole := c.Locals("role").(string)
-	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	userIDFromToken, err := primitive.ObjectIDFromHex(userIDFromTokenStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID in token"})
 	}
 
-	filter := bson.M{}
-	if userRole == "doctor" {
-		filter["doctorId"] = userID
-	} else if userRole == "patient" {
-		filter["patientId"] = userID
+	var filter bson.M
+
+	if userRole == "patient" {
+		var req GetMyReportsRequest
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		}
+
+		// Security Check: Ensure the requested patient ID matches the one from the token.
+		if req.PatientID != userIDFromTokenStr {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "You are not authorized to view these reports."})
+		}
+		filter = bson.M{"patientId": userIDFromToken}
+	} else if userRole == "doctor" {
+		// Doctors get the reports they have created.
+		filter = bson.M{"doctorId": userIDFromToken}
 	} else {
-		// For other roles like 'chef', or if role is not specified, return no reports
-		return c.JSON([]models.Report{})
+		// For other roles, return no reports.
+		return c.JSON([]EnrichedReport{})
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

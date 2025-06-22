@@ -11,7 +11,7 @@ interface DecodedToken {
 }
 
 interface AuthContextType extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<boolean>;
+  login: (credentials: LoginCredentials) => Promise<{ success: boolean; role?: string }>;
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => void;
 }
@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+  const login = async (credentials: LoginCredentials): Promise<{ success: boolean; role?: string }> => {
     const response = await authApi.login(credentials);
     if (response.data?.token) {
       const token = response.data.token;
@@ -90,10 +90,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const user: User = { id: decodedToken.userId, email: decodedToken.email, role: decodedToken.role, fullName: '', createdAt: '' };
       localStorage.setItem('jwt', token);
       dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
-      return true;
+      return { success: true, role: user.role };
     } else {
       dispatch({ type: 'AUTH_FAILURE', payload: response.error || 'Login failed' });
-      return false;
+      return { success: false };
     }
   };
 

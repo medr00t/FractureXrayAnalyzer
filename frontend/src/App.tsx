@@ -12,6 +12,7 @@ import UploadPage from './pages/UploadPage';
 import ResultsPage from './pages/ResultsPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
+import MyReportsPage from './pages/MyReportsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
               <Route path="upload" element={<UploadPage />} />
               <Route path="results/:id" element={<ResultsPage />} />
               <Route path="history" element={<HistoryPage />} />
+              <Route path="my-reports" element={<MyReportsPage />} />
               <Route path="profile" element={<ProfilePage />} />
             </Route>
             

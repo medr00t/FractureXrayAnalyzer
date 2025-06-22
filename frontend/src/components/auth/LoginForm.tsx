@@ -11,9 +11,13 @@ const LoginForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await login({ email, password });
+    const { success, role } = await login({ email, password });
     if (success) {
-      navigate('/');
+      if (role === 'patient') {
+        navigate('/my-reports');
+      } else {
+        navigate('/');
+      }
     }
   };
 
@@ -39,7 +43,7 @@ const LoginForm: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            placeholder="doctor@hospital.com"
+            placeholder="client@email.com"
             required
           />
         </div>
@@ -77,13 +81,7 @@ const LoginForm: React.FC = () => {
         </button>
       </form>
       
-      <div className="mt-4">
-        <p className="text-xs text-gray-500">
-          For demo purposes, you can use:<br />
-          Email: doctor@example.com<br />
-          Password: password123
-        </p>
-      </div>
+      
     </div>
   );
 };

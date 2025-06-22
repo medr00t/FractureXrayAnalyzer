@@ -35,12 +35,21 @@ const Header: React.FC = () => {
           <nav className="hidden md:flex items-center space-x-6">
             {isAuthenticated ? (
               <>
-                <Link to="/upload" className="text-gray-700 hover:text-primary-600 transition-colors">
-                  Upload X-ray
-                </Link>
-                <Link to="/history" className="text-gray-700 hover:text-primary-600 transition-colors">
-                  History
-                </Link>
+                {user?.role !== 'patient' && (
+                  <>
+                    <Link to="/upload" className="text-gray-700 hover:text-primary-600 transition-colors">
+                      Upload X-ray
+                    </Link>
+                    <Link to="/history" className="text-gray-700 hover:text-primary-600 transition-colors">
+                      History
+                    </Link>
+                  </>
+                )}
+                {user?.role === 'patient' && (
+                  <Link to="/my-reports" className="text-gray-700 hover:text-primary-600 transition-colors">
+                    My Reports
+                  </Link>
+                )}
                 <div className="relative group">
                   <button className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors">
                     <span>Account</span>
@@ -91,20 +100,33 @@ const Header: React.FC = () => {
                     <p className="text-xs text-gray-500">{user?.role}</p>
                   </div>
                 </div>
-                <Link 
-                  to="/upload" 
-                  className="text-gray-700 hover:text-primary-600 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Upload X-ray
-                </Link>
-                <Link 
-                  to="/history" 
-                  className="text-gray-700 hover:text-primary-600 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  History
-                </Link>
+                {user?.role !== 'patient' && (
+                  <>
+                    <Link 
+                      to="/upload" 
+                      className="text-gray-700 hover:text-primary-600 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Upload X-ray
+                    </Link>
+                    <Link 
+                      to="/history" 
+                      className="text-gray-700 hover:text-primary-600 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      History
+                    </Link>
+                  </>
+                )}
+                {user?.role === 'patient' && (
+                  <Link 
+                    to="/my-reports" 
+                    className="text-gray-700 hover:text-primary-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    My Reports
+                  </Link>
+                )}
                 <button 
                   onClick={handleLogout}
                   className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition-colors"

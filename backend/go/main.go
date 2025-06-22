@@ -43,6 +43,7 @@ func main() {
 	api.Get("/patients", middleware.IsAuthenticated, handlers.GetMyPatients)
 	api.Post("/analyze", middleware.IsAuthenticated, handlers.AnalyzeImage)
 	api.Get("/reports", middleware.IsAuthenticated, handlers.GetAllReports)
+	api.Post("/reports/my-reports", middleware.IsAuthenticated, handlers.GetMyReports)
 	api.Post("/reports/create", middleware.IsAuthenticated, handlers.CreateReport)
 	api.Get("/reports/:id", middleware.IsAuthenticated, handlers.GetReportByID)
 	api.Delete("/reports/:id", middleware.IsAuthenticated, handlers.DeleteReport)

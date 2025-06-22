@@ -1,5 +1,21 @@
 import { Analysis, ApiResponse, FractureAnnotation, User, Report, EnrichedReport } from '../types';
 
+const API_URL = 'http://localhost:3000/api';
+
+// Generic request handler
+const handleRequest = async (request: Promise<Response>): Promise<ApiResponse<any>> => {
+  try {
+    const response = await request;
+    const data = await response.json();
+    if (!response.ok) {
+      return { data: null, error: data.error || `HTTP error! status: ${response.status}`, status: response.status };
+    }
+    return { data, error: null, status: response.status };
+  } catch (error: any) {
+    return { data: null, error: error.message || 'An unexpected network error occurred', status: 500 };
+  }
+};
+
 // Helper to simulate API delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -186,4 +202,16 @@ export const createReport = async (formData: FormData, token: string): Promise<A
   } catch (error) {
     return { data: null, error: 'An unexpected error occurred during report creation', status: 500 };
   }
+};
+
+export const getMyReports = async (patientId: string, token: string) => {
+    const requestOptions = {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ patientId: patientId }),
+    };
+    return await handleRequest(fetch(`${API_URL}/reports/my-reports`, requestOptions));
 };
