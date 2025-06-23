@@ -13,6 +13,7 @@ import ResultsPage from './pages/ResultsPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
 import MyReportsPage from './pages/MyReportsPage';
+import AddDoctorPage from './pages/AddDoctorPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
               <Route path="results/:id" element={<ResultsPage />} />
               <Route path="history" element={<HistoryPage />} />
               <Route path="my-reports" element={<MyReportsPage />} />
+              <Route path="add-doctor" element={<AddDoctorPage />} />
               <Route path="profile" element={<ProfilePage />} />
             </Route>
             

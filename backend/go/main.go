@@ -49,6 +49,10 @@ func main() {
 	api.Delete("/reports/:id", middleware.IsAuthenticated, handlers.DeleteReport)
 	api.Post("/reports/:reportId/notify", middleware.IsAuthenticated, handlers.NotifyPatientByEmail)
 
+	// Chef-specific routes
+	chef := api.Group("/chef", middleware.IsAuthenticated)
+	chef.Post("/add-doctor", handlers.CreateDoctor)
+
 	api.Get("/test", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"message": "API is working!"})
 	})

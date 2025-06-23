@@ -45,6 +45,11 @@ const Header: React.FC = () => {
                     </Link>
                   </>
                 )}
+                {user?.role === 'chef' && (
+                  <Link to="/add-doctor" className="text-gray-700 hover:text-primary-600 transition-colors">
+                    Add Doctor
+                  </Link>
+                )}
                 {user?.role === 'patient' && (
                   <Link to="/my-reports" className="text-gray-700 hover:text-primary-600 transition-colors">
                     My Reports
@@ -117,6 +122,15 @@ const Header: React.FC = () => {
                       History
                     </Link>
                   </>
+                )}
+                {user?.role === 'chef' && (
+                  <Link 
+                    to="/add-doctor" 
+                    className="text-gray-700 hover:text-primary-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Add Doctor
+                  </Link>
                 )}
                 {user?.role === 'patient' && (
                   <Link 

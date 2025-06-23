@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMyReports, deleteReport } from '../api/analysis';
+import { getMyReports, getReportById } from '../api/analysis';
 import { useAuth } from '../context/AuthContext';
 import { EnrichedReport } from '../types';
 import PageContainer from '../components/layout/PageContainer';
-import { History, Eye, User as UserIcon, Activity } from 'lucide-react';
+import { FileText, Download, Calendar, User, AlertCircle, Loader } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import PdfReportTemplate from '../components/results/PdfReportTemplate';
 
 const MyReportsPage: React.FC = () => {
   const [reports, setReports] = useState<EnrichedReport[]>([]);
@@ -13,14 +16,18 @@ const MyReportsPage: React.FC = () => {
   const { token, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [reportForPdf, setReportForPdf] = useState<EnrichedReport | null>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (authLoading) {
-      return;
+      return; 
     }
 
     const fetchReports = async () => {
       if (!token || !user) {
-        setError("No authentication token found. Please log in.");
+        setError("Authentication is required to view reports. Please log in.");
         setLoading(false);
         return;
       }
@@ -31,10 +38,10 @@ const MyReportsPage: React.FC = () => {
           setReports(response.data);
           setError(null);
         } else {
-          setError(response.error || 'Failed to fetch reports.');
+          setError(response.error || 'An error occurred while fetching your reports.');
         }
       } catch (err: any) {
-        setError(err.message || 'An unexpected error occurred.');
+        setError(err.message || 'A network error occurred.');
       } finally {
         setLoading(false);
       }
@@ -42,87 +49,133 @@ const MyReportsPage: React.FC = () => {
 
     fetchReports();
   }, [token, user, authLoading]);
+  
+  useEffect(() => {
+    if (reportForPdf && pdfRef.current) {
+      html2canvas(pdfRef.current, { scale: 2 })
+        .then((canvas) => {
+          const imgData = canvas.toDataURL('image/png');
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+          pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+          pdf.save(`report-${reportForPdf.patient.fullName?.replace(/\s/g, '_') || reportForPdf.id}.pdf`);
+        })
+        .finally(() => {
+          setDownloadingId(null);
+          setReportForPdf(null); 
+        });
+    }
+  }, [reportForPdf]);
 
-  // Use toLocaleString for a more detailed date and time
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleString();
-
-  const handleViewDetails = (reportId: string) => {
-    navigate(`/results/${reportId}`);
-  };
-
-  const handleDelete = async (reportId: string) => {
+  const handleDownload = async (reportId: string) => {
     if (!token) {
-      setError("Authentication token not found.");
+      setError("Authentication required.");
       return;
     }
-    if (window.confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
-      const { error: deleteError } = await deleteReport(reportId, token);
-      if (deleteError) {
-        setError(deleteError);
+    setDownloadingId(reportId);
+    try {
+      const response = await getReportById(reportId, token);
+      if (response.data) {
+        setReportForPdf(response.data);
       } else {
-        setReports(prevReports => prevReports.filter(report => report.id !== reportId));
-        setError(null);
+        setError(response.error || 'Could not fetch report details.');
+        setDownloadingId(null);
       }
+    } catch (err) {
+      setError('A network error occurred while fetching the report.');
+      setDownloadingId(null);
     }
   };
 
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
+
   if (loading || authLoading) {
-    return <PageContainer><p>Loading reports...</p></PageContainer>;
+    return (
+      <PageContainer>
+        <div className="flex justify-center items-center h-64">
+          <Loader className="animate-spin h-8 w-8 text-primary-600" />
+          <span className="ml-4 text-lg text-gray-600">Loading your reports...</span>
+        </div>
+      </PageContainer>
+    );
   }
 
   if (error) {
-    return <PageContainer><p className="text-red-500">{error}</p></PageContainer>;
+    return (
+      <PageContainer>
+        <div className="flex flex-col items-center justify-center h-64 bg-red-50 border border-red-200 rounded-lg p-8">
+            <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+            <h2 className="text-xl font-semibold text-red-800">Could not load reports</h2>
+            <p className="text-red-600 mt-2">{error}</p>
+        </div>
+      </PageContainer>
+    );
   }
 
   return (
-    <PageContainer title="My Reports" subtitle="Review your fracture detection reports">
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Doctor</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fracture Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Confidence</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {reports.length > 0 ? (
-              reports.map((report: any) => (
-                <tr key={report.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{formatDate(report.createdAt)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{report.patientName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{report.doctorName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{report.fractureType || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{report.confidence ? `${Math.round(report.confidence * 100)}%` : 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleViewDetails(report.id)}
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => handleDelete(report.id)}
-                      className="ml-4 text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="text-center py-10 text-gray-500">
-                  <History className="mx-auto h-12 w-12" />
-                  <p className="mt-2">No reports found.</p>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+    <PageContainer 
+      title="My Medical Reports"
+      subtitle="Here you can find and download all your past analysis reports."
+    >
+      <div className="mt-8">
+        {reports.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {(reports as any[]).map((report) => (
+              <div key={report.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col">
+                <div className="p-6 flex-grow">
+                  <div className="flex items-center mb-4">
+                    <FileText className="h-6 w-6 text-primary-500 mr-3" />
+                    <h3 className="text-lg font-bold text-gray-800 truncate" title={report.fractureType || 'Report'}>
+                      {report.fractureType || 'General Report'}
+                    </h3>
+                  </div>
+                  <div className="space-y-3 text-sm text-gray-600">
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      <span>{formatDate(report.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <User className="h-4 w-4 mr-2" />
+                      <span>Doctor: {report.doctorName}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 px-6 py-4">
+                  <button
+                    onClick={() => handleDownload(report.id)}
+                    disabled={!!downloadingId}
+                    className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:bg-gray-400"
+                  >
+                    {downloadingId === report.id ? (
+                      <>
+                        <Loader className="animate-spin h-5 w-5 mr-2" />
+                        Downloading...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-5 w-5 mr-2" />
+                        Download Report
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-gray-50 rounded-lg">
+            <FileText className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-4 text-lg font-medium text-gray-900">No Reports Found</h3>
+            <p className="mt-1 text-sm text-gray-500">You do not have any analysis reports yet.</p>
+          </div>
+        )}
+      </div>
+      {/* Hidden container for PDF generation */}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+        {reportForPdf && <PdfReportTemplate ref={pdfRef} report={reportForPdf} />}
       </div>
     </PageContainer>
   );

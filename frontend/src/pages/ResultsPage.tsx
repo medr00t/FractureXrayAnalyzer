@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Printer, FileDown, AlertCircle, Clock } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
 import AnnotatedImage from '../components/results/AnnotatedImage';
@@ -12,12 +12,14 @@ import html2canvas from 'html2canvas';
 const ResultsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { token, user } = useAuth();
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notifyStatus, setNotifyStatus] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const reportContentRef = useRef<HTMLDivElement>(null);
+  const hasDownloadedRef = useRef(false);
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -43,6 +45,14 @@ const ResultsPage: React.FC = () => {
 
     fetchReport();
   }, [id, token]);
+
+  useEffect(() => {
+    const shouldDownload = searchParams.get('download') === 'true';
+    if (shouldDownload && report && reportContentRef.current && !hasDownloadedRef.current) {
+      hasDownloadedRef.current = true; // Prevent re-download on re-renders
+      handleDownloadPdf();
+    }
+  }, [report, searchParams]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();

@@ -39,6 +39,22 @@ func IsAuthenticated(c *fiber.Ctx) error {
 	return c.Next()
 }
 
+// IsChef is a middleware that checks if the user is authenticated and has the 'chef' role.
+func IsChef(c *fiber.Ctx) error {
+	// First, run the standard authentication check.
+	if err := IsAuthenticated(c); err != nil {
+		return err
+	}
+
+	// Then, check the role.
+	role := c.Locals("role").(string)
+	if role != "chef" {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Access denied. Chef role required."})
+	}
+
+	return c.Next()
+}
+
 func AuthRequired(role string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		return c.Next()

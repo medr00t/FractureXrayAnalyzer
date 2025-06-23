@@ -1,0 +1,111 @@
+import React, { forwardRef } from 'react';
+import { EnrichedReport } from '../../types';
+
+interface PdfReportTemplateProps {
+  report: EnrichedReport;
+}
+
+const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
+const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplateProps>(({ report }, ref) => {
+  if (!report) return null;
+
+  return (
+    <div ref={ref} className="bg-white p-8" style={{ width: '210mm', minHeight: '297mm', fontFamily: 'sans-serif' }}>
+      <header className="flex justify-between items-center pb-4 border-b-2 border-gray-200">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Medical Report</h1>
+          <p className="text-sm text-gray-500">CONFIDENTIAL</p>
+        </div>
+        <div className="text-right">
+            <p className="font-semibold">RadioFracture AI</p>
+            <p className="text-xs text-gray-500">AI-Powered Fracture Detection</p>
+        </div>
+      </header>
+      
+      <main className="mt-8">
+        <div className="grid grid-cols-3 gap-8">
+          {/* Left Column: Image and Analysis */}
+          <div className="col-span-2">
+            <div className="bg-black rounded-lg shadow-md w-full h-[400px] flex justify-center items-center overflow-hidden mb-6">
+                {report.annotatedImage && (
+                    <img 
+                        src={`data:image/jpeg;base64,${report.annotatedImage}`}
+                        alt="Annotated X-ray"
+                        className="max-w-full max-h-full object-contain"
+                    />
+                )}
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{report.fractureType || 'No Fracture Detected'}</h3>
+                <p className="text-gray-600">
+                    <span className="font-semibold">Confidence Score:</span> {report.confidence ? `${Math.round(report.confidence * 100)}%` : 'N/A'}
+                </p>
+                <p className="text-gray-600">
+                    <span className="font-semibold">Estimated Recovery:</span> {report.recoveryTime || 'N/A'}
+                </p>
+            </div>
+          </div>
+          
+          {/* Right Column: Details */}
+          <div className="col-span-1">
+            <div className="bg-gray-50 rounded-lg shadow-inner p-4">
+                <h2 className="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2 mb-4">Report Details</h2>
+                <dl className="space-y-3">
+                    <div>
+                        <dt className="font-semibold text-gray-700">Image Name</dt>
+                        <dd className="text-sm text-gray-600">{report.imageName}</dd>
+                    </div>
+                    <div>
+                        <dt className="font-semibold text-gray-700">Report Date</dt>
+                        <dd className="text-sm text-gray-600">{formatDate(report.createdAt)}</dd>
+                    </div>
+                </dl>
+            </div>
+            <div className="bg-gray-50 rounded-lg shadow-inner p-4 mt-6">
+                <h2 className="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2 mb-4">Patient Information</h2>
+                <dl className="space-y-3">
+                    <div>
+                        <dt className="font-semibold text-gray-700">Full Name</dt>
+                        <dd className="text-sm text-gray-600">{report.patient?.fullName || 'N/A'}</dd>
+                    </div>
+                    <div>
+                        <dt className="font-semibold text-gray-700">Email</dt>
+                        <dd className="text-sm text-gray-600">{report.patient?.email || 'N/A'}</dd>
+                    </div>
+                </dl>
+            </div>
+             <div className="bg-gray-50 rounded-lg shadow-inner p-4 mt-6">
+                <h2 className="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2 mb-4">Doctor Information</h2>
+                <dl className="space-y-3">
+                    <div>
+                        <dt className="font-semibold text-gray-700">Full Name</dt>
+                        <dd className="text-sm text-gray-600">{report.doctor?.fullName || 'N/A'}</dd>
+                    </div>
+                     <div>
+                        <dt className="font-semibold text-gray-700">Email</dt>
+                        <dd className="text-sm text-gray-600">{report.doctor?.email || 'N/A'}</dd>
+                    </div>
+                </dl>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <footer className="text-center text-xs text-gray-400 pt-8 mt-8 border-t">
+        This report was generated by the RadioFracture AI system and is for informational purposes only. It is not a substitute for professional medical advice.
+      </footer>
+    </div>
+  );
+});
+
+export default PdfReportTemplate; 
