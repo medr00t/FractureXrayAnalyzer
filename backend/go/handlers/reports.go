@@ -37,8 +37,8 @@ type GetMyReportsRequest struct {
 }
 
 // Hardcoded Gmail credentials for local testing
-var emailUser = "forfirefree31@gmail.com" // <-- put your Gmail here
-var emailPass = "ccsbzrcfeatufgmb"        // ccsb zrcf eatu fgmb
+var emailUser = "" // <-- put your Gmail here
+var emailPass = ""        // <-- put your Gmail's App password here 
 
 func GetMyReports(c *fiber.Ctx) error {
 	userIDFromTokenStr := c.Locals("userId").(string)
