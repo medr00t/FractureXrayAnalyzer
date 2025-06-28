@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model_path = r"C:\Users\Med Amine EL\PycharmProjects\XRayFractureNet\ModelV4Yolo\best03022025.pt"
+model_path = r"path\to\XRayFractureNet\ModelV4Yolo\model.pt"
 model = YOLO(model_path)
 
 recovery_params = {
