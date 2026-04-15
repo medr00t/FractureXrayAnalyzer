@@ -80,7 +80,7 @@ MONGO_URI=mongodb+srv://...
 JWT_SECRET=your_jwt_secret
 PYTHON_SERVICE_URL=http://localhost:8000/analyze
 EMAIL_USER=yourgmail@gmail.com
-EMAIL_PASSWORD=your_app_password
+EMAIL_PASSWORD=your_app_password```
 
 
 ## Contributors
