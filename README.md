@@ -82,7 +82,7 @@ EMAIL_USER=yourgmail@gmail.com
 EMAIL_PASSWORD=your_app_password
 ```
 
-## 👥 Contributors
+## Contributors
 
 | Name | Role |
 |------|------|
